@@ -15,7 +15,7 @@ const initialDaysContent = {
   }],
 }
 
-let daysContent = [{
+let daysContent = ref([{
   id: Math.random().toString(10).substring(2, 15),
   date: new Date(new Date().setDate(new Date().getDate() - 10)).toLocaleDateString('en-GB', { day: 'numeric', month: 'numeric' }),
   note: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
@@ -91,7 +91,7 @@ let daysContent = [{
     dish: 'Pâtes à la carbonara',
     time: TIME.EVENING,
   }],
-}]
+}])
 
 const timesRemaining = (health) => {
   const usedTimes = health.map((item) => item.time)
@@ -107,7 +107,7 @@ const addDay = () => {
   // Sort form.health by time
   form.value.health.sort((a, b) => Object.values(TIME).indexOf(a.time) - Object.values(TIME).indexOf(b.time))
 
-  daysContent.push({
+  daysContent.value.push({
     id: Math.random().toString(10).substring(2, 15),
     date: form.value.date,
     note: form.value.note,
@@ -127,6 +127,10 @@ const closeDayModal = () => {
   displayDayForm.value = false
 }
 
+const deleteDay = (id) => {
+  daysContent.value = daysContent.value.filter((day) => day.id !== id)
+}
+
 onMounted(() => {
   window.scrollTo(0, document.body.scrollHeight)
 })
@@ -135,7 +139,7 @@ onMounted(() => {
 <template>
   <main class="flex-1 relative h-full px-8 pt-6 pb-12 bg-slate-900">
     <div class="grid grid-cols-1 md:grid-cols-2 flex-wrap gap-8">
-      <Card v-for="day in daysContent" :key="day.id" :content="day" />
+      <Card v-for="day in daysContent" :key="day.id" :content="day" @delete:day="deleteDay" />
     </div>
 
     <div class="fixed z-20 left-1/2 transform -translate-x-1/2 bottom-10">

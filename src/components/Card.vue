@@ -1,14 +1,32 @@
 <script setup>
+import Modal from './Modal.vue'
 import { FEELING } from '@/utils/constants'
 import check from '@/assets/check.png'
 import cross from '@/assets/cross.png'
+
+import { ref } from 'vue'
 
 defineProps({
   content: Object,
 })
 
+const emit = defineEmits(['delete:day'])
+
 function isGoodDay(health) {
   return health.every((item) => item.feeling === FEELING.GOOD)
+}
+
+const confirmDayDeletion = ref(false)
+
+const deleteDay = (id) => {
+  // Emit an event to the parent component to delete the day
+  emit('delete:day', id)
+
+  closeDeleteModal()
+}
+
+const closeDeleteModal = () => {
+  confirmDayDeletion.value = false
 }
 </script>
 
@@ -29,7 +47,7 @@ function isGoodDay(health) {
         </div>
       </div>
       <div class="border-r border-white">
-        <div class="flex justify-center items-center h-full w-16 px-2">
+        <div @click="confirmDayDeletion = true" class="flex justify-center items-center h-full w-16 px-2">
           <img v-if="isGoodDay(content.health)" :src="check" alt="Good day" class="w-8 h-8" />
           <img v-else :src="cross" alt="Bad day" class="w-8 h-8" />
         </div>
@@ -50,4 +68,26 @@ function isGoodDay(health) {
       </div>
     </div>
   </div>
+
+  <Modal :show="confirmDayDeletion" @close="closeDeleteModal">
+    <div class="p-6">
+      <h2 class="text-lg font-medium text-white">
+        Êtes vous sûr de vouloir supprimer définitivement ce jour ?
+      </h2>
+
+      <p class="mt-1 text-slate-200">
+        Cette action est irréversible.
+      </p>
+
+      <div class="mt-6 flex justify-end">
+        <button @click="closeDeleteModal" type="button" class="px-4 py-2 text-sm text-slate-800 bg-slate-300 hover:bg-slate-400 rounded-md">
+          Annuler
+        </button>
+
+        <button @click="deleteDay(content.id)" type="submit" class="ml-4 px-4 py-2 text-sm text-white bg-red-500 hover:bg-red-700 rounded-md">
+          Supprimer ce jour
+        </button>
+      </div>
+    </div>
+  </Modal>
 </template>
