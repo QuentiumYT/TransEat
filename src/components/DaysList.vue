@@ -1,5 +1,5 @@
 <script setup>
-import Card from './Card.vue'
+import DayCard from './DayCard.vue'
 import Modal from './Modal.vue'
 import { FEELING, TIME } from '@/utils/constants'
 
@@ -139,7 +139,7 @@ onMounted(() => {
 <template>
   <main class="flex-1 relative h-full px-8 pt-6 pb-12 bg-slate-900">
     <div class="grid grid-cols-1 md:grid-cols-2 flex-wrap gap-8">
-      <Card v-for="day in daysContent" :key="day.id" :content="day" @delete:day="deleteDay" />
+      <DayCard v-for="day in daysContent" :key="day.id" :content="day" @delete:day="deleteDay" />
     </div>
 
     <div class="fixed z-20 left-1/2 transform -translate-x-1/2 bottom-10">
