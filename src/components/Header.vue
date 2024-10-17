@@ -5,7 +5,7 @@ defineProps({
 </script>
 
 <template>
-  <header class="bg-gray-950 text-white p-4">
+  <header class="sticky z-10 top-0 w-full bg-gray-950 text-white p-4">
     <div class="flex justify-between items-center w-2/3 mx-auto">
       <span>{{ user.name }}</span>
       <img :src="user.image" alt="User avatar" class="h-8 w-8 rounded-full">
