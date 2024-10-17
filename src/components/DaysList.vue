@@ -17,7 +17,7 @@ const initialDaysContent = {
 
 let daysContent = ref([{
   id: Math.random().toString(10).substring(2, 15),
-  date: new Date(new Date().setDate(new Date().getDate() - 10)).toLocaleDateString('en-GB', { day: 'numeric', month: 'numeric' }),
+  date: new Date(new Date().setDate(new Date().getDate() - 10)).toLocaleDateString('en-GB'),
   note: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
   health: [{
     feeling: FEELING.BAD,
@@ -42,7 +42,7 @@ let daysContent = ref([{
   }],
 }, {
   id: Math.random().toString(10).substring(2, 15),
-  date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'numeric' }),
+  date: new Date().toLocaleDateString('en-GB'),
   note: 'Elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Lorem ipsum dolor sit amet, consectetur adipiscing.',
   health: [{
     feeling: FEELING.GOOD,
@@ -59,7 +59,7 @@ let daysContent = ref([{
   }],
 }, {
   id: Math.random().toString(10).substring(2, 15),
-  date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'numeric' }),
+  date: new Date().toLocaleDateString('en-GB'),
   note: 'Elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Lorem ipsum dolor sit amet, consectetur adipiscing.',
   health: [{
     feeling: FEELING.GOOD,
@@ -76,7 +76,7 @@ let daysContent = ref([{
   }],
 }, {
   id: Math.random().toString(10).substring(2, 15),
-  date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'numeric' }),
+  date: new Date().toLocaleDateString('en-GB'),
   note: 'Elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Lorem ipsum dolor sit amet, consectetur adipiscing.',
   health: [{
     feeling: FEELING.GOOD,
@@ -103,32 +103,51 @@ const form = ref(structuredClone(initialDaysContent))
 
 const displayDayForm = ref(false)
 
-const addDay = () => {
+const handleDay = () => {
   // Sort form.health by time
   form.value.health.sort((a, b) => Object.values(TIME).indexOf(a.time) - Object.values(TIME).indexOf(b.time))
 
-  daysContent.value.push({
-    id: Math.random().toString(10).substring(2, 15),
-    date: form.value.date,
-    note: form.value.note,
-    health: form.value.health,
-  })
+  if (form.value.id) {
+    const day = daysContent.value.find((day) => day.id === form.value.id)
+    day.date = new Date(form.value.date).toLocaleDateString('en-GB')
+    day.note = form.value.note
+    day.health = form.value.health
+  } else {
+    daysContent.value.push({
+      id: Math.random().toString(10).substring(2, 15),
+      date: new Date(form.value.date).toLocaleDateString('en-GB'),
+      note: form.value.note,
+      health: form.value.health,
+    })
 
-  setInterval(() => {
-    window.scrollTo(0, document.body.scrollHeight)
-  }, 100)
+    setInterval(() => {
+      window.scrollTo(0, document.body.scrollHeight)
+    }, 100)
+  }
 
   form.value = structuredClone(initialDaysContent)
 
   closeDayModal()
 }
 
-const closeDayModal = () => {
-  displayDayForm.value = false
+const editDay = (id) => {
+  displayDayForm.value = true
+
+  const day = daysContent.value.find((day) => day.id === id)
+  form.value = {
+    ...day,
+    // Prevent reactivity for health array
+    health: day.health.map((item) => ({ ...item })),
+    date: day.date.split('/').reverse().join('-'),
+  }
 }
 
 const deleteDay = (id) => {
   daysContent.value = daysContent.value.filter((day) => day.id !== id)
+}
+
+const closeDayModal = () => {
+  displayDayForm.value = false
 }
 
 onMounted(() => {
@@ -139,7 +158,7 @@ onMounted(() => {
 <template>
   <main class="flex-1 relative h-full px-8 pt-6 pb-12 bg-slate-900">
     <div class="grid grid-cols-1 md:grid-cols-2 flex-wrap gap-8">
-      <DayCard v-for="day in daysContent" :key="day.id" :content="day" @delete:day="deleteDay" />
+      <DayCard v-for="day in daysContent" :key="day.id" :content="day" @edit:day="editDay" @delete:day="deleteDay" />
     </div>
 
     <div class="fixed z-20 left-1/2 transform -translate-x-1/2 bottom-10">
@@ -208,7 +227,11 @@ onMounted(() => {
             Annuler
           </button>
 
-          <button @click="addDay" type="submit" class="ml-3 px-4 py-2 text-sm text-white bg-cyan-500 hover:bg-cyan-700 rounded-md">
+          <button v-if="form.id" @click="handleDay" type="submit" class="ml-3 px-4 py-2 text-sm text-white bg-cyan-500 hover:bg-cyan-700 rounded-md">
+            Edit
+          </button>
+
+          <button v-else @click="handleDay" type="submit" class="ml-3 px-4 py-2 text-sm text-white bg-cyan-500 hover:bg-cyan-700 rounded-md">
             Add
           </button>
         </div>
