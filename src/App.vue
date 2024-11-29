@@ -1,12 +1,14 @@
 <script setup>
-import Header from './components/Header.vue'
-import DaysList from './components/DaysList.vue'
-import Footer from './components/Footer.vue'
+import Header from '@/components/Header.vue'
+import DaysList from '@/components/DaysList.vue'
+import Footer from '@/components/Footer.vue'
 
-const user = {
-  name: 'Quentin Lienhardt',
-  image: 'https://assets.quentium.fr/logo/logo.svg',
-}
+import { ref } from 'vue';
+
+const user = ref({
+  name: 'Guest',
+  image: '',
+})
 
 const menu = {
   items: [
