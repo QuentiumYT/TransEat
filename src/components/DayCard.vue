@@ -1,6 +1,6 @@
 <script setup>
 import Modal from './Modal.vue'
-import { FEELING } from '@/utils/constants'
+import { FEELING, TIME } from '@/utils/constants'
 import check from '@/assets/check.png'
 import cross from '@/assets/cross.png'
 
@@ -12,11 +12,15 @@ defineProps({
 
 const emit = defineEmits(['edit:day', 'delete:day'])
 
-function isGoodDay(health) {
+const confirmDayDeletion = ref(false)
+
+const isGoodDay = (health) => {
   return health.every((item) => item.feeling === FEELING.GOOD)
 }
 
-const confirmDayDeletion = ref(false)
+String.prototype.capitalize = function () {
+  return this.charAt(0).toUpperCase() + this.slice(1).toLowerCase()
+}
 
 const editDay = (id) => {
   // Emit an event to the parent component to edit the day
@@ -36,14 +40,14 @@ const closeDeleteModal = () => {
 </script>
 
 <template>
-  <div class="flex flex-col min-w-0 bg-slate-800 border-2 border-white text-white rounded-lg">
+  <div class="flex flex-col min-w-0 h-fit bg-slate-800 border-2 border-white text-white rounded-lg">
     <div class="flex">
       <div class="border-r border-white">
         <p class="font-bold p-4">
           {{ content.date }}
         </p>
       </div>
-      <div class="border-r border-white min-w-0">
+      <div class="flex-1 border-r border-white min-w-0">
         <div class="flex items-center w-full p-4">
           <p class="truncate">{{ content.note }}</p>
         </div>
@@ -65,13 +69,13 @@ const closeDeleteModal = () => {
 
     <div v-for="item in content.health" :key="item.time" class="border-t border-white">
       <div class="flex flex-row justify-between py-2 px-4">
-        <p>
+        <p :title="Object.keys(FEELING).find(key => FEELING[key] === item.feeling).capitalize()">
           {{ item.feeling }}
         </p>
         <p class="w-full mx-4 text-left">
           {{ item.dish }}
         </p>
-        <p>
+        <p :title="Object.keys(TIME).find(key => TIME[key] === item.time).capitalize()">
           {{ item.time }}
         </p>
       </div>
