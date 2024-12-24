@@ -2,6 +2,7 @@
 import DayCard from './DayCard.vue'
 import Modal from './Modal.vue'
 import { FEELING, TIME } from '@/utils/constants'
+import { supabase } from '@/utils/supabase'
 
 import { onMounted, ref } from 'vue'
 
@@ -15,83 +16,11 @@ const initialDaysContent = {
   }],
 }
 
-let daysContent = ref([{
-  id: Math.random().toString(10).substring(2, 15),
-  date: new Date(new Date().setDate(new Date().getDate() - 10)).toLocaleDateString('en-GB'),
-  note: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
-  health: [{
-    feeling: FEELING.BAD,
-    dish: 'Pain et beurre confiture',
-    time: TIME.MORNING,
-  }, {
-    feeling: FEELING.MEDIUM,
-    dish: 'Ravioli crème et champignons',
-    time: TIME.MIDDAY,
-  }, {
-    feeling: FEELING.GOOD,
-    dish: 'Petits beurres',
-    time: TIME.AFTERNOON,
-  }, {
-    feeling: FEELING.GOOD,
-    dish: 'Gnocchis à la sauce tomate',
-    time: TIME.EVENING,
-  }, {
-    feeling: FEELING.GOOD,
-    dish: 'Morceau de chocolat',
-    time: TIME.NIGHT,
-  }],
-}, {
-  id: Math.random().toString(10).substring(2, 15),
-  date: new Date().toLocaleDateString('en-GB'),
-  note: 'Elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Lorem ipsum dolor sit amet, consectetur adipiscing.',
-  health: [{
-    feeling: FEELING.GOOD,
-    dish: 'Céréales et lait',
-    time: TIME.MORNING,
-  }, {
-    feeling: FEELING.GOOD,
-    dish: 'Poulet rôti et riz',
-    time: TIME.MIDDAY,
-  }, {
-    feeling: FEELING.GOOD,
-    dish: 'Pâtes à la carbonara',
-    time: TIME.EVENING,
-  }],
-}, {
-  id: Math.random().toString(10).substring(2, 15),
-  date: new Date().toLocaleDateString('en-GB'),
-  note: 'Elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Lorem ipsum dolor sit amet, consectetur adipiscing.',
-  health: [{
-    feeling: FEELING.GOOD,
-    dish: 'Céréales et lait',
-    time: TIME.MORNING,
-  }, {
-    feeling: FEELING.GOOD,
-    dish: 'Poulet rôti et riz',
-    time: TIME.MIDDAY,
-  }, {
-    feeling: FEELING.GOOD,
-    dish: 'Pâtes à la carbonara',
-    time: TIME.EVENING,
-  }],
-}, {
-  id: Math.random().toString(10).substring(2, 15),
-  date: new Date().toLocaleDateString('en-GB'),
-  note: 'Elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Lorem ipsum dolor sit amet, consectetur adipiscing.',
-  health: [{
-    feeling: FEELING.GOOD,
-    dish: 'Céréales et lait',
-    time: TIME.MORNING,
-  }, {
-    feeling: FEELING.GOOD,
-    dish: 'Poulet rôti et riz',
-    time: TIME.MIDDAY,
-  }, {
-    feeling: FEELING.GOOD,
-    dish: 'Pâtes à la carbonara',
-    time: TIME.EVENING,
-  }],
-}])
+const daysContent = ref([])
+
+const form = ref(structuredClone(initialDaysContent))
+
+const displayDayForm = ref(false)
 
 const timesRemaining = (health) => {
   const usedTimes = health.map((item) => item.time)
@@ -99,22 +28,82 @@ const timesRemaining = (health) => {
   return timesRemaining
 }
 
-const form = ref(structuredClone(initialDaysContent))
+const sortTimes = (a, b) => Object.values(TIME).indexOf(a.time) - Object.values(TIME).indexOf(b.time)
 
-const displayDayForm = ref(false)
+const getdaysContent = async () => {
+  const { data } = await supabase
+    .from('days')
+    .select(`
+      *,
+      health (
+        *
+      )
+    `)
+    .order('date', { ascending: false })
 
-const handleDay = () => {
+  data.forEach((day) => {
+    day.date = new Date(day.date).toLocaleDateString('en-GB')
+    // Sort form.health by time
+    day.health.sort(sortTimes)
+  })
+  daysContent.value = data
+
+  window.scrollTo(0, document.body.scrollHeight)
+}
+
+const handleDay = async () => {
   // Sort form.health by time
-  form.value.health.sort((a, b) => Object.values(TIME).indexOf(a.time) - Object.values(TIME).indexOf(b.time))
+  form.value.health.sort(sortTimes)
 
+  // Edit day if id exists, else add a new day
   if (form.value.id) {
+    form.value.health.forEach(async (item) => {
+      await supabase
+        .from('health')
+        .update({
+          feeling: item.feeling,
+          dish: item.dish,
+          time: item.time,
+        })
+        .eq('id', item.id)
+    })
+
+    await supabase
+      .from('days')
+      .update({
+        date: new Date(form.value.date),
+        note: form.value.note,
+      })
+      .eq('id', form.value.id)
+
     const day = daysContent.value.find((day) => day.id === form.value.id)
     day.date = new Date(form.value.date).toLocaleDateString('en-GB')
     day.note = form.value.note
     day.health = form.value.health
   } else {
+    const { data } = await supabase
+      .from('days')
+      .insert({
+        date: new Date(form.value.date),
+        note: form.value.note,
+      })
+      .select()
+
+    const idDay = data[0].id
+
+    form.value.health.forEach(async (item) => {
+      await supabase
+        .from('health')
+        .insert({
+          id_day: idDay,
+          feeling: item.feeling,
+          dish: item.dish,
+          time: item.time,
+        })
+    })
+
     daysContent.value.push({
-      id: Math.random().toString(10).substring(2, 15),
+      id: idDay,
       date: new Date(form.value.date).toLocaleDateString('en-GB'),
       note: form.value.note,
       health: form.value.health,
@@ -124,8 +113,6 @@ const handleDay = () => {
       window.scrollTo(0, document.body.scrollHeight)
     }, 100)
   }
-
-  form.value = structuredClone(initialDaysContent)
 
   closeDayModal()
 }
@@ -142,16 +129,27 @@ const editDay = (id) => {
   }
 }
 
-const deleteDay = (id) => {
+const deleteDay = async (id) => {
+  await supabase
+    .from('health')
+    .delete()
+    .eq('id_day', id)
+
+  await supabase
+    .from('days')
+    .delete()
+    .eq('id', id)
+
   daysContent.value = daysContent.value.filter((day) => day.id !== id)
 }
 
 const closeDayModal = () => {
   displayDayForm.value = false
+  form.value = structuredClone(initialDaysContent)
 }
 
-onMounted(() => {
-  window.scrollTo(0, document.body.scrollHeight)
+onMounted(async () => {
+  await getdaysContent()
 })
 </script>
 
@@ -172,7 +170,8 @@ onMounted(() => {
     <Modal :show="displayDayForm" @close="closeDayModal">
       <div class="p-6">
         <h2 class="text-lg font-medium text-white">
-          Add a new day
+          <span v-if="form.id">Edit current day</span>
+          <span v-else>Add a new day</span>
         </h2>
 
         <div class="mt-4">
