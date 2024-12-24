@@ -19,6 +19,7 @@ const initialDaysContent = {
 const daysContent = ref([])
 
 const form = ref(structuredClone(initialDaysContent))
+const formError = ref('')
 
 const displayDayForm = ref(false)
 
@@ -54,6 +55,18 @@ const getdaysContent = async () => {
 const handleDay = async () => {
   // Sort form.health by time
   form.value.health.sort(sortTimes)
+
+  // Check if at least one dish is filled
+  if (form.value.health.every((item) => !item.dish)) {
+    formError.value = 'Please fill in at least one dish'
+    return false
+  }
+
+  // Check if dish is at least 3 characters long
+  if (form.value.health.some((item) => item.dish.length < 3)) {
+    formError.value = 'Dish must be at least 3 characters long'
+    return false
+  }
 
   // Edit day if id exists, else add a new day
   if (form.value.id) {
@@ -220,6 +233,10 @@ onMounted(async () => {
             </svg>
           </button>
         </div>
+
+        <p v-if="formError" class="mt-2 text-red-500">
+          {{ formError }}
+        </p>
 
         <div class="mt-6 flex justify-end">
           <button @click="closeDayModal" type="button" class="px-4 py-2 text-sm text-slate-800 bg-slate-300 hover:bg-slate-400 rounded-md">
