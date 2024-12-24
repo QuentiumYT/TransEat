@@ -85,20 +85,20 @@ const closeDeleteModal = () => {
   <Modal :show="confirmDayDeletion" @close="closeDeleteModal">
     <div class="p-6">
       <h2 class="text-lg font-medium text-white">
-        Êtes vous sûr de vouloir supprimer définitivement ce jour ?
+        Are you sure you want to permanently delete this day?
       </h2>
 
       <p class="mt-1 text-slate-200">
-        Cette action est irréversible.
+        This action is irreversible.
       </p>
 
       <div class="mt-6 flex justify-end">
         <button @click="closeDeleteModal" type="button" class="px-4 py-2 text-sm text-slate-800 bg-slate-300 hover:bg-slate-400 rounded-md">
-          Annuler
+          Cancel
         </button>
 
         <button @click="deleteDay(content.id)" type="submit" class="ml-4 px-4 py-2 text-sm text-white bg-red-500 hover:bg-red-700 rounded-md">
-          Supprimer ce jour
+          Delete this day
         </button>
       </div>
     </div>

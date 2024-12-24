@@ -231,6 +231,7 @@ onMounted(async () => {
             <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
             </svg>
+            Add a dish
           </button>
         </div>
 
@@ -240,7 +241,7 @@ onMounted(async () => {
 
         <div class="mt-6 flex justify-end">
           <button @click="closeDayModal" type="button" class="px-4 py-2 text-sm text-slate-800 bg-slate-300 hover:bg-slate-400 rounded-md">
-            Annuler
+            Cancel
           </button>
 
           <button v-if="form.id" @click="handleDay" type="submit" class="ml-3 px-4 py-2 text-sm text-white bg-cyan-500 hover:bg-cyan-700 rounded-md">
